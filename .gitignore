@@ -1,0 +1,11 @@
+# Log & tracking
+mlruns/
+outputs/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Model artifacts
+*.pkl
+*.joblib
