@@ -44,7 +44,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: best_model
-        path: MLProject/outputs/best_model.pkl
+        path: MLProject/mlflow_model/
 
     - name: DockerHub Login
       uses: docker/login-action@v2
@@ -52,10 +52,15 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Build and Push Docker Image from local model
+    - name: Build and Push Docker Image (manual build)
       shell: bash -l {0}
       run: |
         cd MLProject
-        mlflow models build-docker -m ./mlflow_model -n msml_model_image
-        docker tag msml_model_image ${{ secrets.DOCKERHUB_USERNAME }}/msml_model_image:latest
+        echo "FROM python:3.10-slim" > Dockerfile
+        echo "RUN pip install mlflow scikit-learn pandas numpy joblib" >> Dockerfile
+        echo "COPY mlflow_model /opt/model" >> Dockerfile
+        echo "ENV MLFLOW_MODEL_PATH=/opt/model" >> Dockerfile
+        echo 'CMD ["mlflow", "models", "serve", "-m", "/opt/model", "--no-conda", "--host", "0.0.0.0"]' >> Dockerfile
+
+        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/msml_model_image:latest .
         docker push ${{ secrets.DOCKERHUB_USERNAME }}/msml_model_image:latest
