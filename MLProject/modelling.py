@@ -52,42 +52,38 @@ best_model = None
 best_score = 0
 best_model_name = ""
 
-# ✅ Start run secara eksplisit dan aman (baik lokal maupun CI)
-with mlflow.start_run(nested=True) as run:
-    run_id = run.info.run_id
+for name, model in models.items():
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
 
-    for name, model in models.items():
-        model.fit(X_train, y_train)
-        y_pred = model.predict(X_test)
+    acc = accuracy_score(y_test, y_pred)
+    f1 = f1_score(y_test, y_pred)
+    precision = precision_score(y_test, y_pred)
+    recall = recall_score(y_test, y_pred)
+    roc_auc = roc_auc_score(y_test, model.predict_proba(X_test)[:, 1])
 
-        acc = accuracy_score(y_test, y_pred)
-        f1 = f1_score(y_test, y_pred)
-        precision = precision_score(y_test, y_pred)
-        recall = recall_score(y_test, y_pred)
-        roc_auc = roc_auc_score(y_test, model.predict_proba(X_test)[:, 1])
+    print(f"\n📌 Model: {name}")
+    print("Accuracy:", acc)
+    print("F1 Score:", f1)
+    print("ROC AUC:", roc_auc)
+    print("Precision:", precision)
+    print("Recall:", recall)
+    print(classification_report(y_test, y_pred))
 
-        print(f"\n📌 Model: {name}")
-        print("Accuracy:", acc)
-        print("F1 Score:", f1)
-        print("ROC AUC:", roc_auc)
-        print("Precision:", precision)
-        print("Recall:", recall)
-        print(classification_report(y_test, y_pred))
+    mlflow.log_metric(f"{name}_accuracy", acc)
+    mlflow.log_metric(f"{name}_f1", f1)
+    mlflow.log_metric(f"{name}_precision", precision)
+    mlflow.log_metric(f"{name}_recall", recall)
+    mlflow.log_metric(f"{name}_roc_auc", roc_auc)
 
-        mlflow.log_metric(f"{name}_accuracy", acc, run_id=run_id)
-        mlflow.log_metric(f"{name}_f1", f1, run_id=run_id)
-        mlflow.log_metric(f"{name}_precision", precision, run_id=run_id)
-        mlflow.log_metric(f"{name}_recall", recall, run_id=run_id)
-        mlflow.log_metric(f"{name}_roc_auc", roc_auc, run_id=run_id)
+    if acc > best_score:
+        best_model = model
+        best_model_name = name
+        best_score = acc
 
-        if acc > best_score:
-            best_model = model
-            best_model_name = name
-            best_score = acc
+mlflow.sklearn.log_model(best_model, artifact_path="model", registered_model_name="BestCIModel")
+print(f"\n✅ Model terbaik: {best_model_name} (Accuracy: {best_score:.4f})")
 
-    mlflow.sklearn.log_model(best_model, artifact_path="model", registered_model_name="BestCIModel", run_id=run_id)
-    print(f"\n✅ Model terbaik: {best_model_name} (Accuracy: {best_score:.4f})")
-
-    os.makedirs("outputs", exist_ok=True)
-    joblib.dump(best_model, "outputs/best_model.pkl")
-    mlflow.log_artifact("outputs/best_model.pkl", run_id=run_id)
+os.makedirs("outputs", exist_ok=True)
+joblib.dump(best_model, "outputs/best_model.pkl")
+mlflow.log_artifact("outputs/best_model.pkl")
