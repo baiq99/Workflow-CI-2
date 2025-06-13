@@ -52,12 +52,10 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Build and Push Docker Image
+    - name: Build and Push Docker Image from local model
       shell: bash -l {0}
       run: |
         cd MLProject
-        LAST_RUN_ID=$(mlflow experiments list | awk 'NR==2 {print $1}' | xargs -I {} mlflow runs list --experiment-id {} | awk 'NR==2 {print $1}')
-        echo "Last run ID: $LAST_RUN_ID"
-        mlflow models build-docker -m mlruns/0/$LAST_RUN_ID/artifacts/mlflow_model -n msml_model_image
+        mlflow models build-docker -m ./mlflow_model -n msml_model_image
         docker tag msml_model_image ${{ secrets.DOCKERHUB_USERNAME }}/msml_model_image:latest
         docker push ${{ secrets.DOCKERHUB_USERNAME }}/msml_model_image:latest
