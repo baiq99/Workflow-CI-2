@@ -77,18 +77,17 @@ for name, model in models.items():
         best_model_name = name
         best_score = acc
 
-# ========== Logging Final Model ==========
-# Buat folder untuk output secara eksplisit
-os.makedirs("outputs", exist_ok=True)
+# ========== Logging Model and Artifact ==========
+output_dir = os.path.abspath("outputs")
+os.makedirs(output_dir, exist_ok=True)
 
-# Simpan model secara lokal (untuk diupload ke Docker juga)
-joblib.dump(best_model, "outputs/best_model.pkl")
-mlflow.log_artifact("outputs/best_model.pkl")
+model_path = os.path.join(output_dir, "best_model.pkl")
+joblib.dump(best_model, model_path)
 
-# Simpan model ke MLflow (hindari path root, gunakan subdir)
-mlflow.sklearn.log_model(
-    sk_model=best_model,
-    artifact_path="outputs/mlflow_model"
-)
+# Explicitly tell MLflow where to find the artifact
+mlflow.log_artifact(local_path=model_path, artifact_path="outputs")
+
+# Save model to MLflow
+mlflow.sklearn.log_model(best_model, artifact_path="outputs/mlflow_model")
 
 print(f"\n✅ Model terbaik: {best_model_name} (Accuracy: {best_score:.4f})")
