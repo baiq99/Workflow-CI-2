@@ -22,14 +22,23 @@ jobs:
         activate-environment: mlflow-env
         environment-file: MLProject/conda.yaml
         auto-activate-base: false
+        use-mamba: false
+
+    - name: Confirm Conda Init
+      shell: bash -l {0}
+      run: |
+        conda info
+        conda list
 
     - name: Install mlflow
+      shell: bash -l {0}
       run: pip install mlflow
 
-    - name: Run MLflow Project
+    - name: Run MLflow Project (local env)
+      shell: bash -l {0}
       run: |
         cd MLProject
-        mlflow run . -P data_path=dataset_preprocessed/online_shoppers_intention_preprocessed.csv
+        mlflow run . -P data_path=dataset_preprocessed/online_shoppers_intention_preprocessed.csv --env-manager=local
 
     - name: Upload Model Artifact
       uses: actions/upload-artifact@v4
@@ -44,6 +53,7 @@ jobs:
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
     - name: Build and Push Docker Image
+      shell: bash -l {0}
       run: |
         cd MLProject
         mlflow models build-docker -m ./outputs/best_model.pkl -n msml_model_image
