@@ -6,7 +6,8 @@ dependencies:
   - python=3.10
   - pip
   - pip:
-      - scikit-learn
       - mlflow
+      - scikit-learn
       - pandas
       - numpy
+      - joblib
