@@ -3,7 +3,7 @@ import numpy as np
 import os
 import argparse
 import mlflow
-import mlflow.sklearn
+import mlflow.pyfunc
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
@@ -73,11 +73,13 @@ for name, model in models.items():
         best_model_name = name
         best_score = acc
 
-# ========== Simpan model ke outputs ==========
+
+# Simpan model secara lokal (untuk build Docker)
+os.makedirs("mlflow_model", exist_ok=True)
+mlflow.sklearn.save_model(best_model, path="mlflow_model")
+
+# Simpan pkl sebagai artefak manual (jika diperlukan)
 os.makedirs("outputs", exist_ok=True)
 joblib.dump(best_model, "outputs/best_model.pkl")
-
-# ========== Logging model MLflow agar bisa digunakan build-docker ==========
-mlflow.sklearn.log_model(best_model, artifact_path="mlflow_model")
 
 print(f"\n✅ Model terbaik: {best_model_name} (Accuracy: {best_score:.4f})")
