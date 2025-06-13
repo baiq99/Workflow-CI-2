@@ -37,10 +37,6 @@ X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, stratify=y, random_state=42
 )
 
-# ========== MLflow Setup ==========
-# Jangan set experiment di GitHub Actions, karena run sudah diatur otomatis
-# Jangan set_tracking_uri juga — default saja
-
 # ========== Model Training ==========
 models = {
     "RandomForest": RandomForestClassifier(random_state=42),
@@ -81,10 +77,18 @@ for name, model in models.items():
         best_model_name = name
         best_score = acc
 
-# Logging model dan artefak
-mlflow.sklearn.log_model(best_model, artifact_path="model")
-print(f"\n✅ Model terbaik: {best_model_name} (Accuracy: {best_score:.4f})")
-
+# ========== Logging Final Model ==========
+# Buat folder untuk output secara eksplisit
 os.makedirs("outputs", exist_ok=True)
+
+# Simpan model secara lokal (untuk diupload ke Docker juga)
 joblib.dump(best_model, "outputs/best_model.pkl")
 mlflow.log_artifact("outputs/best_model.pkl")
+
+# Simpan model ke MLflow (hindari path root, gunakan subdir)
+mlflow.sklearn.log_model(
+    sk_model=best_model,
+    artifact_path="outputs/mlflow_model"
+)
+
+print(f"\n✅ Model terbaik: {best_model_name} (Accuracy: {best_score:.4f})")
