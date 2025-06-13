@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/Ega/Pictures/Dicoding/Membangun Sistem ML/Submission-Membangun-Sistem-ML/Workflow-CI/MLProject/mlruns/494996268144906390/afd679de0b6d4f8e9dfa6598f05e2166/artifacts
+end_time: 1749824969576
+entry_point_name: ''
+experiment_id: '494996268144906390'
+lifecycle_stage: active
+run_id: afd679de0b6d4f8e9dfa6598f05e2166
+run_name: CI_Model_Run
+run_uuid: afd679de0b6d4f8e9dfa6598f05e2166
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1749824952617
+status: 3
+tags: []
+user_id: Ega

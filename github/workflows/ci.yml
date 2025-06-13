@@ -1,0 +1,51 @@
+name: CI Workflow MLflow Advance
+
+on:
+  push:
+    paths:
+      - MLProject/**
+      - .github/workflows/ci.yml
+      - Dockerfile
+      - requirements.txt
+
+jobs:
+  train-model:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
+
+    - name: Setup Miniconda
+      uses: conda-incubator/setup-miniconda@v2
+      with:
+        activate-environment: mlflow-env
+        environment-file: MLProject/conda.yaml
+        auto-activate-base: false
+
+    - name: Install mlflow
+      run: pip install mlflow
+
+    - name: Run MLflow Project
+      run: |
+        cd MLProject
+        mlflow run . -P data_path=dataset_preprocessed/online_shoppers_intention_preprocessed.csv
+
+    - name: Upload Model Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: best_model
+        path: MLProject/outputs/best_model.pkl
+
+    - name: Docker login
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Build and Push Docker Image
+      run: |
+        cd MLProject
+        mlflow models build-docker -m ./outputs/best_model.pkl -n msml_model_image
+        docker tag msml_model_image ${{ secrets.DOCKERHUB_USERNAME }}/msml_model_image:latest
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/msml_model_image:latest

@@ -1,0 +1,10 @@
+name: Workflow_CI_Advance
+
+conda_env: conda.yaml
+
+entry_points:
+  main:
+    parameters:
+      data_path: {type: str, default: "dataset_preprocessed/online_shoppers_intention_preprocessed.csv"}
+    command: >
+      python modelling.py --data_path {data_path}

@@ -1,0 +1,14 @@
+aliases: []
+creation_timestamp: 1749824969491
+current_stage: None
+description: null
+last_updated_timestamp: 1749824969491
+name: BestCIModel
+run_id: afd679de0b6d4f8e9dfa6598f05e2166
+run_link: null
+source: file:///C:/Users/Ega/Pictures/Dicoding/Membangun Sistem ML/Submission-Membangun-Sistem-ML/Workflow-CI/MLProject/mlruns/494996268144906390/afd679de0b6d4f8e9dfa6598f05e2166/artifacts/model
+status: READY
+status_message: null
+storage_location: file:///C:/Users/Ega/Pictures/Dicoding/Membangun Sistem ML/Submission-Membangun-Sistem-ML/Workflow-CI/MLProject/mlruns/494996268144906390/afd679de0b6d4f8e9dfa6598f05e2166/artifacts/model
+user_id: null
+version: 1
