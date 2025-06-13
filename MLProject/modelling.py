@@ -74,8 +74,7 @@ for name, model in models.items():
         best_model_name = name
         best_score = acc
 
-
-# ========== Simpan model untuk Docker build ==========
+# ========== Simpan model ==========
 
 # Simpan model dengan format MLflow (sklearn flavor)
 mlflow.sklearn.save_model(best_model, path="mlflow_model")
