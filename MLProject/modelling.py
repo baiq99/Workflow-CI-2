@@ -56,7 +56,8 @@ best_score = 0
 best_model_name = ""
 
 # 🧠 This ensures compatibility with mlflow run (no nested run conflicts)
-with mlflow.start_run():
+with mlflow.start_run(nested=True):
+
     for name, model in models.items():
         model.fit(X_train, y_train)
         y_pred = model.predict(X_test)
