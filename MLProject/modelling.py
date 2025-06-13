@@ -37,53 +37,49 @@ X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, stratify=y, random_state=42
 )
 
+
 # ========== MLflow Setup ==========
 mlflow.set_tracking_uri("file:./mlruns")
 mlflow.set_experiment("Eksperimen_Modeling_CI")
 
-# ========== Model Training ==========
-models = {
-    "RandomForest": RandomForestClassifier(random_state=42),
-    "LogisticRegression": LogisticRegression(max_iter=1000),
-    "SVM": SVC(probability=True)
-}
+# ========== Start run secara eksplisit ==========
+with mlflow.start_run():  # ✅ penting!
+    best_model = None
+    best_score = 0
+    best_model_name = ""
 
-best_model = None
-best_score = 0
-best_model_name = ""
+    for name, model in models.items():
+        model.fit(X_train, y_train)
+        y_pred = model.predict(X_test)
 
-for name, model in models.items():
-    model.fit(X_train, y_train)
-    y_pred = model.predict(X_test)
+        acc = accuracy_score(y_test, y_pred)
+        f1 = f1_score(y_test, y_pred)
+        precision = precision_score(y_test, y_pred)
+        recall = recall_score(y_test, y_pred)
+        roc_auc = roc_auc_score(y_test, model.predict_proba(X_test)[:, 1])
 
-    acc = accuracy_score(y_test, y_pred)
-    f1 = f1_score(y_test, y_pred)
-    precision = precision_score(y_test, y_pred)
-    recall = recall_score(y_test, y_pred)
-    roc_auc = roc_auc_score(y_test, model.predict_proba(X_test)[:, 1])
+        print(f"\n📌 Model: {name}")
+        print("Accuracy:", acc)
+        print("F1 Score:", f1)
+        print("ROC AUC:", roc_auc)
+        print("Precision:", precision)
+        print("Recall:", recall)
+        print(classification_report(y_test, y_pred))
 
-    print(f"\n📌 Model: {name}")
-    print("Accuracy:", acc)
-    print("F1 Score:", f1)
-    print("ROC AUC:", roc_auc)
-    print("Precision:", precision)
-    print("Recall:", recall)
-    print(classification_report(y_test, y_pred))
+        mlflow.log_metric(f"{name}_accuracy", acc)
+        mlflow.log_metric(f"{name}_f1", f1)
+        mlflow.log_metric(f"{name}_precision", precision)
+        mlflow.log_metric(f"{name}_recall", recall)
+        mlflow.log_metric(f"{name}_roc_auc", roc_auc)
 
-    mlflow.log_metric(f"{name}_accuracy", acc)
-    mlflow.log_metric(f"{name}_f1", f1)
-    mlflow.log_metric(f"{name}_precision", precision)
-    mlflow.log_metric(f"{name}_recall", recall)
-    mlflow.log_metric(f"{name}_roc_auc", roc_auc)
+        if acc > best_score:
+            best_model = model
+            best_model_name = name
+            best_score = acc
 
-    if acc > best_score:
-        best_model = model
-        best_model_name = name
-        best_score = acc
+    mlflow.sklearn.log_model(best_model, artifact_path="model", registered_model_name="BestCIModel")
+    print(f"\n✅ Model terbaik: {best_model_name} (Accuracy: {best_score:.4f})")
 
-mlflow.sklearn.log_model(best_model, artifact_path="model", registered_model_name="BestCIModel")
-print(f"\n✅ Model terbaik: {best_model_name} (Accuracy: {best_score:.4f})")
-
-os.makedirs("outputs", exist_ok=True)
-joblib.dump(best_model, "outputs/best_model.pkl")
-mlflow.log_artifact("outputs/best_model.pkl")
+    os.makedirs("outputs", exist_ok=True)
+    joblib.dump(best_model, "outputs/best_model.pkl")
+    mlflow.log_artifact("outputs/best_model.pkl")
