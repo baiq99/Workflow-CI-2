@@ -38,8 +38,8 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 
 # ========== MLflow Setup ==========
-mlflow.set_tracking_uri("file:./mlruns")
-mlflow.set_experiment("Eksperimen_Modeling_CI")
+# Jangan set experiment di GitHub Actions, karena run sudah diatur otomatis
+# Jangan set_tracking_uri juga — default saja
 
 # ========== Model Training ==========
 models = {
@@ -81,7 +81,7 @@ for name, model in models.items():
         best_model_name = name
         best_score = acc
 
-# Simpan model dan artefak
+# Logging model dan artefak
 mlflow.sklearn.log_model(best_model, artifact_path="model")
 print(f"\n✅ Model terbaik: {best_model_name} (Accuracy: {best_score:.4f})")
 
