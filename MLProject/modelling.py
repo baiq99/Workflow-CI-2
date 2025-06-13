@@ -77,17 +77,14 @@ for name, model in models.items():
         best_model_name = name
         best_score = acc
 
-# ========== Logging Model and Artifact ==========
-output_dir = os.path.abspath("outputs")
-os.makedirs(output_dir, exist_ok=True)
+# ========== Save model ==========
+print(f"\n✅ Model terbaik: {best_model_name} (Accuracy: {best_score:.4f})")
 
-model_path = os.path.join(output_dir, "best_model.pkl")
+# Simpan ke file lokal (relatif path)
+os.makedirs("outputs", exist_ok=True)
+model_path = os.path.join("outputs", "best_model.pkl")
 joblib.dump(best_model, model_path)
 
-# Explicitly tell MLflow where to find the artifact
-mlflow.log_artifact(local_path=model_path, artifact_path="outputs")
-
-# Save model to MLflow
-mlflow.sklearn.log_model(best_model, artifact_path="outputs/mlflow_model")
-
-print(f"\n✅ Model terbaik: {best_model_name} (Accuracy: {best_score:.4f})")
+# Log ke MLflow (tanpa artifact_path!)
+mlflow.sklearn.log_model(best_model, artifact_path="model")
+mlflow.log_artifact(model_path)
