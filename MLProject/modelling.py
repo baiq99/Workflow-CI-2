@@ -3,15 +3,13 @@ import numpy as np
 import os
 import argparse
 import mlflow
-import mlflow.sklearn
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 from sklearn.metrics import (
     accuracy_score, classification_report,
-    roc_auc_score, f1_score,
-    precision_score, recall_score
+    roc_auc_score, f1_score, precision_score, recall_score
 )
 import joblib
 
@@ -26,10 +24,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 # ========== Load Dataset ==========
-def load_data(path):
-    return pd.read_csv(path)
-
-data = load_data(args.data_path)
+data = pd.read_csv(args.data_path)
 X = data.drop("Revenue", axis=1)
 y = data["Revenue"]
 
@@ -77,14 +72,11 @@ for name, model in models.items():
         best_model_name = name
         best_score = acc
 
-# ========== Save model ==========
+# ========== Save model manually to outputs folder ==========
+os.makedirs("outputs", exist_ok=True)
+model_path = "outputs/best_model.pkl"
+joblib.dump(best_model, model_path)
 print(f"\n✅ Model terbaik: {best_model_name} (Accuracy: {best_score:.4f})")
 
-# Simpan ke file lokal (relatif path)
-os.makedirs("outputs", exist_ok=True)
-model_path = os.path.join("outputs", "best_model.pkl")
-joblib.dump(best_model, model_path)
-
-# Log ke MLflow (tanpa artifact_path!)
-mlflow.sklearn.log_model(best_model, artifact_path="model")
-mlflow.log_artifact(model_path)
+# ========== Log model & file secara manual ==========
+mlflow.log_artifact(local_path=model_path)
