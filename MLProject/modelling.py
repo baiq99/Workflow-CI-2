@@ -72,11 +72,11 @@ for name, model in models.items():
         best_model_name = name
         best_score = acc
 
-# ========== Save model manually to outputs folder ==========
+# ========== Save model ==========
 os.makedirs("outputs", exist_ok=True)
 model_path = "outputs/best_model.pkl"
 joblib.dump(best_model, model_path)
 print(f"\n✅ Model terbaik: {best_model_name} (Accuracy: {best_score:.4f})")
 
-# ========== Log model & file secara manual ==========
-mlflow.log_artifact(local_path=model_path)
+# 🚫 Hapus log_artifact agar tidak error di GitHub Actions
+# mlflow.log_artifact(local_path=model_path)
