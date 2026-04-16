@@ -86,3 +86,5 @@ joblib.dump(best_model, "outputs/best_model.pkl")
 print("📦 Model tersimpan sebagai 'outputs/best_model.pkl' (format joblib)")
 
 print(f"\n✅ Model terbaik: {best_model_name} (Accuracy: {best_score:.4f})")
+
+# trigger CI
