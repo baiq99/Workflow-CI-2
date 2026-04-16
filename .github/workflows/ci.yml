@@ -9,12 +9,16 @@ on:
       - requirements.txt
 
 jobs:
+
   train-model:
+
     runs-on: ubuntu-latest
 
     steps:
+
     - name: Checkout Repository
       uses: actions/checkout@v3
+
 
     - name: Setup Miniconda
       uses: conda-incubator/setup-miniconda@v2
@@ -22,29 +26,42 @@ jobs:
         activate-environment: mlflow-env
         environment-file: MLProject/conda.yaml
         auto-activate-base: false
-        use-mamba: false
+
+
+    - name: Fix missing pkg_resources
+      shell: bash -l {0}
+      run: |
+        pip install --upgrade pip
+        pip install setuptools wheel
+
 
     - name: Verify Conda Environment
       shell: bash -l {0}
       run: |
-        conda info
-        conda list
+        python --version
+        pip list
 
-    - name: Install MLflow
+
+    - name: Install MLflow (ensure latest)
       shell: bash -l {0}
       run: pip install mlflow
+
 
     - name: Run MLflow Project
       shell: bash -l {0}
       run: |
         cd MLProject
-        mlflow run . -P data_path=dataset_preprocessed/online_shoppers_intention_preprocessed.csv --env-manager=local
+        mlflow run . \
+        -P data_path=dataset_preprocessed/online_shoppers_intention_preprocessed.csv \
+        --env-manager=local
+
 
     - name: Upload Model Artifact
       uses: actions/upload-artifact@v4
       with:
         name: best_model
-        path: MLProject/mlflow_model/
+        path: MLProject/outputs/best_model.pkl
+
 
     - name: DockerHub Login
       uses: docker/login-action@v2
@@ -52,15 +69,21 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Build and Push Docker Image (manual build)
+
+    - name: Build Docker Image
       shell: bash -l {0}
       run: |
         cd MLProject
+
         echo "FROM python:3.10-slim" > Dockerfile
-        echo "RUN pip install mlflow scikit-learn pandas numpy joblib" >> Dockerfile
-        echo "COPY mlflow_model /opt/model" >> Dockerfile
-        echo "ENV MLFLOW_MODEL_PATH=/opt/model" >> Dockerfile
-        echo 'CMD ["mlflow", "models", "serve", "-m", "/opt/model", "--no-conda", "--host", "0.0.0.0"]' >> Dockerfile
+        echo "WORKDIR /app" >> Dockerfile
+
+        echo "RUN pip install mlflow scikit-learn pandas numpy joblib cloudpickle" >> Dockerfile
+
+        echo "COPY outputs/best_model.pkl /app/model.pkl" >> Dockerfile
+
+        echo 'CMD ["mlflow", "models", "serve", "-m", "/app", "--no-conda", "--host", "0.0.0.0", "-p", "5000"]' >> Dockerfile
 
         docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/msml_model_image:latest .
+
         docker push ${{ secrets.DOCKERHUB_USERNAME }}/msml_model_image:latest
