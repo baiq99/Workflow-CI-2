@@ -1,14 +1,12 @@
-FROM python:3.10-slim
+FROM python:3.10
 
 WORKDIR /app
 
-COPY requirements.txt /app/requirements.txt
-
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
-
 COPY . /app
 
-ENV PYTHONUNBUFFERED=1
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt
 
-CMD ["python", "modelling.py", "--data_path", "dataset_preprocessed/online_shoppers_intention_preprocessed.csv"]
+ENV MLFLOW_TRACKING_URI http://mlflow:5000
+
+ENTRYPOINT ["python", "modelling.py"]
