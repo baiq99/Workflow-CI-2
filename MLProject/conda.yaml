@@ -5,25 +5,14 @@ channels:
   - defaults
 
 dependencies:
-
   - python=3.10
-
   - pip
-
-  - setuptools
-
+  - setuptools=69.5.1
   - wheel
-
   - pip:
-
       - mlflow==2.12.1
-
       - scikit-learn==1.4.2
-
       - pandas==2.2.2
-
       - numpy==1.26.4
-
       - joblib==1.4.0
-
-      - cloudpickle
+      - cloudpickle==3.0.0
